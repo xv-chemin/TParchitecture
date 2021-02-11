@@ -13,6 +13,5 @@ namespace TParchitecture.Models
         public string MovieGenre { get; set; }
         public string SearchString { get; set; }
 
-
     }
 }
