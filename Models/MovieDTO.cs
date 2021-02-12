@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace TParchitecture.Models
 {
-    public class Movie
+    public class MovieDTO
     {
-
         public int Id { get; set; }
 
         [StringLength(60, MinimumLength = 3)]
@@ -34,6 +33,6 @@ namespace TParchitecture.Models
         [StringLength(5)]
         [Required]
         public string Rating { get; set; }
-        public bool Validate { get; set; }
+        
     }
 }

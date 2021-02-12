@@ -23,14 +23,15 @@ namespace TParchitecture.Controllers
 
         // GET: api/MoviesAPI
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetMovie()
+        public async Task<ActionResult<IEnumerable<MovieDTO>>> GetMovie()
         {
-            return await _context.Movie.ToListAsync();
+            return await _context.Movie.Select(x => MovieToDTO(x)).ToListAsync();
         }
+
 
         // GET: api/MoviesAPI/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Movie>> GetMovie(int id)
+        public async Task<ActionResult<MovieDTO>> GetMovie(int id)
         {
             var movie = await _context.Movie.FindAsync(id);
 
@@ -39,36 +40,33 @@ namespace TParchitecture.Controllers
                 return NotFound();
             }
 
-            return movie;
+            return MovieToDTO(movie);
         }
 
         // PUT: api/MoviesAPI/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutMovie(int id, Movie movie)
+        public async Task<IActionResult> UpdateMovie(int id, MovieDTO movieDTO)
         {
-            if (id != movie.Id)
+            if (id != movieDTO.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(movie).State = EntityState.Modified;
+            var movie = await _context.Movie.FindAsync(id);
+            if (movie == null)
+            {
+                return NotFound();
+            }
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException) when (!MovieExists(id))
             {
-                if (!MovieExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
             return NoContent();
@@ -78,17 +76,26 @@ namespace TParchitecture.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Movie>> PostMovie(Movie movie)
+        public async Task<ActionResult<MovieDTO>> CreateMovie(MovieDTO movieDTO)
         {
+            var movie = new Movie
+            {
+                Title = movieDTO.Title,
+                ReleaseDate = movieDTO.ReleaseDate,
+                Genre = movieDTO.Genre,
+                Price = movieDTO.Price,
+                Rating = movieDTO.Rating
+            };
+
             _context.Movie.Add(movie);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetMovie", new { id = movie.Id }, movie);
+            return CreatedAtAction(nameof(GetMovie), new { id = movie.Id }, MovieToDTO(movie));
         }
 
         // DELETE: api/MoviesAPI/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Movie>> DeleteMovie(int id)
+        public async Task<IActionResult> DeleteMovie(int id)
         {
             var movie = await _context.Movie.FindAsync(id);
             if (movie == null)
@@ -99,12 +106,24 @@ namespace TParchitecture.Controllers
             _context.Movie.Remove(movie);
             await _context.SaveChangesAsync();
 
-            return movie;
+            return NoContent();
         }
 
         private bool MovieExists(int id)
         {
             return _context.Movie.Any(e => e.Id == id);
         }
+
+        private static MovieDTO MovieToDTO(Movie movie) =>
+            new MovieDTO
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                ReleaseDate = movie.ReleaseDate,
+                Genre = movie.Genre,
+                Price = movie.Price,
+                Rating = movie.Rating
+
+            };
     }
 }
