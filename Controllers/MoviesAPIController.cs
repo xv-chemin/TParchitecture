@@ -10,7 +10,7 @@ using TParchitecture.Models;
 
 namespace TParchitecture.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Movie")]
     [ApiController]
     public class MoviesAPIController : ControllerBase
     {
